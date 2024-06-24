@@ -1,42 +1,36 @@
 class BridgeTree {
 public:
-    class Bridges { // finds all bridges and returns vector of pairs [u, v] (u < v)
-    public:
-        int n, m, timer = 0;
-        vector<vector<int>> g;
-        vector<int> vis, in, low;
-        vector<pair<int, int>> bridges;
-        Bridges(int n, vector<vector<int>> g) {
-            this->n = n;
-            this->g = g;
-            vis.resize(n + 1), low.resize(n + 1), in.resize(n + 1);
-            m = g.size();
-        }
-        void dfs (int node, int par) {
-            vis[node] = 1;
-            in[node] = low[node] = timer++;
-            for (int child : g[node]) {
-                if (child == par) continue;
-                if (vis[child]) {
-                    low[node] = min(low[node], in[child]);
-                } else {
-                    dfs(child, node);
-                    if (low[child] > in[node]) {
-                        bridges.push_back({min(node, child), max(node, child)});
-                    }
-                    low[node] = min(low[node], low[child]);
-                }
+    vector<int> sz, in, low, vis;
+    vector<pair<int, int>> bridges;
+    vector<vector<int>> g;
+    int timer, n;
+    void find_bridges() { // stores all the bridges as vector of pairs [u, v] (u < v)
+        timer = 0;
+        vis.resize(n + 1), low.resize(n + 1), in.resize(n + 1), sz.resize(n + 1);
+        for (int i = 1; i <= n; i++) {
+            if (not vis[i]) {
+                bridge_dfs(i, -1);
             }
         }
-        vector<pair<int, int>> get () {
-            for (int i = 1; i <= n; i++) {
-                if (not vis[i]) {
-                    dfs(i, -1);
+    }
+    void bridge_dfs (int node, int par) {
+        vis[node] = sz[node] = 1;
+        in[node] = low[node] = timer++;
+        for (int child : g[node]) {
+            if (child == par) continue;
+            if (vis[child]) {
+                low[node] = min(low[node], in[child]);
+            } else {
+                bridge_dfs(child, node);
+                sz[node] += sz[child];
+                if (low[child] > in[node]) {
+                    bridges.push_back({min(node, child), max(node, child)});
                 }
+                low[node] = min(low[node], low[child]);
             }
-            return bridges;
         }
-    };
+
+    }
     class DSU { // used to merge many nodes into one to create Bridge Tree
     public:
         vector<int> parent, size;
@@ -64,14 +58,12 @@ public:
     };
     
     
-    int n;
-    vector<vector<int>> adj;
-    vector<pair<int, int>> bridges;
-    DSU d;
+    vector<vector<int>> adj;    // adj represents BridgeTree
+    DSU d;                      // whereas g represents original graph
     BridgeTree(int n, vector<vector<int>> g, vector<pair<int, int>> edges) { // edges[i].first should be < edges[i].second
         this->n = n;
-        Bridges b(n, g);
-        bridges = b.get();
+        this->g = g;
+        find_bridges();
         map<pair<int, int>, int> mp;
         for (auto x : bridges) {
             mp[x]++;
