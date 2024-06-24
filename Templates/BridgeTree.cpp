@@ -66,11 +66,12 @@ public:
     
     int n;
     vector<vector<int>> adj;
+    vector<pair<int, int>> bridges;
     DSU d;
     BridgeTree(int n, vector<vector<int>> g, vector<pair<int, int>> edges) { // edges[i].first should be < edges[i].second
         this->n = n;
         Bridges b(n, g);
-        auto bridges = b.get();
+        bridges = b.get();
         map<pair<int, int>, int> mp;
         for (auto x : bridges) {
             mp[x]++;
